@@ -4,8 +4,9 @@ import 'package:flutter/material.dart';
 
 class KeyboardButton extends StatelessWidget {
   final Widget child;
+  final VoidCallback? onTap;
 
-  const KeyboardButton({super.key, required this.child});
+  const KeyboardButton({super.key, required this.child, this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -25,7 +26,9 @@ class KeyboardButton extends StatelessWidget {
 
   InkWell buildInkWell() {
     return InkWell(
-      onTap: () {},
+      onTap: () {
+        onTap?.call();
+      },
       customBorder: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16.0),
       ),

@@ -2,6 +2,8 @@
 
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:provider/provider.dart';
+import 'package:second_flutter_app/calculater_model.dart';
 
 import './button.dart';
 
@@ -19,6 +21,9 @@ class Keyboard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+
+    final calcModel = Provider.of<CalculatorModel>(context, listen: false);
+
     return Container(
       padding: const EdgeInsets.only(
         bottom: 16.0,
@@ -37,6 +42,7 @@ class Keyboard extends StatelessWidget {
         children: [
           Row(children: [
             KeyboardButton(
+              onTap: () { calcModel.reset(); } ,
               child: Text(
                 "AC",
                 style: btnTextStyle.copyWith(color: greenColor),
@@ -52,75 +58,88 @@ class Keyboard extends StatelessWidget {
               child: Icon(Icons.percent, size: 30.0, color: greenColor),
             ),
             KeyboardButton(
+              onTap: () { calcModel.onOperator(Operator.div); } ,
               child: buildMathSymbol(FontAwesomeIcons.divide),
             ),
           ]),
           Row(children: [
             KeyboardButton(
+              onTap: () { calcModel.onDigit(7); } ,
               child: Text(
                 "7",
                 style: btnTextStyle,
               ),
             ),
             KeyboardButton(
+              onTap: () { calcModel.onDigit(8); } ,
               child: Text(
                 "8",
                 style: btnTextStyle,
               ),
             ),
             KeyboardButton(
+              onTap: () { calcModel.onDigit(9); } ,
               child: Text(
                 "9",
                 style: btnTextStyle,
               ),
             ),
             KeyboardButton(
+              onTap: () { calcModel.onOperator(Operator.mul); } ,
               child: buildMathSymbol(FontAwesomeIcons.multiply),
             ),
           ]),
           Row(children: [
             KeyboardButton(
+              onTap: () { calcModel.onDigit(4); },
               child: Text(
                 "4",
                 style: btnTextStyle,
               ),
             ),
             KeyboardButton(
+              onTap: () { calcModel.onDigit(5); },
               child: Text(
                 "5",
                 style: btnTextStyle,
               ),
             ),
             KeyboardButton(
+              onTap: () { calcModel.onDigit(6); },
               child: Text(
                 "6",
                 style: btnTextStyle,
               ),
             ),
             KeyboardButton(
+              onTap: () { calcModel.onOperator(Operator.sub); } ,
               child: buildMathSymbol(FontAwesomeIcons.minus),
             ),
           ]),
           Row(children: [
             KeyboardButton(
+              onTap: () { calcModel.onDigit(1); },
               child: Text(
                 "1",
                 style: btnTextStyle,
               ),
             ),
             KeyboardButton(
+              onTap: () { calcModel.onDigit(2); },
               child: Text(
                 "2",
                 style: btnTextStyle,
               ),
             ),
             KeyboardButton(
+              onTap: () { calcModel.onDigit(3); },
               child: Text(
                 "3",
                 style: btnTextStyle,
               ),
             ),
             KeyboardButton(
+              onTap: () { calcModel.onOperator(Operator.add); } ,
               child: buildMathSymbol(FontAwesomeIcons.plus),
             ),
           ]),
@@ -129,6 +148,7 @@ class Keyboard extends StatelessWidget {
               child: Icon(Icons.replay, size: 30.0),
             ),
             KeyboardButton(
+              onTap: () { calcModel.onDigit(0); },
               child: Text(
                 "0",
                 style: btnTextStyle,
