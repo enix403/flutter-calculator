@@ -162,6 +162,7 @@ class Keyboard extends StatelessWidget {
               ),
             ),
             KeyboardButton(
+              onTap: () { calcModel.onAnswer(); },
               child: buildMathSymbol(FontAwesomeIcons.equals),
             ),
           ]),

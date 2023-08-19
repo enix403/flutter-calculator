@@ -9,7 +9,7 @@ final largeText =
 final smallText =
     TextStyle(fontWeight: FontWeight.w500, color: Colors.white, fontSize: 24.0);
 
-enum ResultStatus { Null, UserInput, Answer }
+const textAnimDuration = Duration(milliseconds: 100);
 
 class ResultView extends StatelessWidget {
   @override
@@ -53,41 +53,37 @@ class _UserQuery extends StatelessWidget {
         query = buffer.toString();
       }
 
-      return Text(
-        query,
-        style: largeText,
+      return AnimatedDefaultTextStyle(
+        duration: textAnimDuration,
+        key: ValueKey(calcModel.status == ResultStatus.Null),
+        style: calcModel.status == ResultStatus.Answer ? smallText : largeText,
+        child: Text(
+          query,
+        ),
       );
     });
   }
 }
 
 class _Answer extends StatelessWidget {
+  final smallFaded = smallText.copyWith(color: const Color(0xFFA6A6A6));
+
   @override
   Widget build(BuildContext context) {
     // TODO: implement build
     return Consumer<CalculatorModel>(builder: (context, calcModel, child) {
-      if (calcModel.tokens.isEmpty)
-        return SizedBox.shrink();
+      if (calcModel.status == ResultStatus.Null) return SizedBox.shrink();
 
-      return Text(
-        "= " + calcModel.evaluate().toString(),
-        style: smallText.copyWith(color: const Color(0xFFA6A6A6)),
+      final style =
+          calcModel.status == ResultStatus.Answer ? largeText : smallFaded;
+
+      return AnimatedDefaultTextStyle(
+        style: style,
+        duration: textAnimDuration,
+        child: Text(
+          "= " + calcModel.evaluate().toString(),
+        ),
       );
     });
   }
 }
-
-/*
-
-null input:
-  0
-
-some input:
-  <user input>
-  = <small answer preview>
-
-answer:
-  <small user orignal input>
-  = <answer>
-
-*/

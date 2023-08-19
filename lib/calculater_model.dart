@@ -3,14 +3,26 @@ import 'dart:collection';
 import 'package:flutter/material.dart';
 //import 'package:provider/provider.dart';
 
+enum ResultStatus { Null, UserQuery, Answer }
+
 class CalculatorModel extends ChangeNotifier {
   final List<Token> _tokens = [];
+  ResultStatus _status = ResultStatus.Null;
 
   UnmodifiableListView<Token> get tokens => UnmodifiableListView(_tokens);
+  ResultStatus get status => _status;
 
   void onDigit(int value) {
     print("CalculatorModel::onDigit(${value})");
+
+    if (_status == ResultStatus.Answer) {
+      //_tokens.clear();
+      this.reset();
+    }
+
     var tail = _tokens.lastOrNull;
+
+    _status = ResultStatus.UserQuery;
 
     if (tail == null || tail is OperatorToken) {
       _tokens.add(IncompleteValueToken(value));
@@ -24,19 +36,26 @@ class CalculatorModel extends ChangeNotifier {
 
   void onOperator(Operator op) {
     print("CalculatorModel::onOperator(${op.symbol})");
+
     if (_tokens.isEmpty)
       // An expression cannot start with an operator.
       return;
 
-    if (_tokens.last is OperatorToken) {
-      // Replace the existing operator with this
-      _tokens.last = OperatorToken(op);
-    } else if (_tokens.last is IncompleteValueToken) {
-      _tokens.last =
-          ValueToken((_tokens.last as IncompleteValueToken).toCompleteValue());
+    if (_status == ResultStatus.UserQuery) {
+      if (_tokens.last is OperatorToken) {
+        // Replace the existing operator with this
+        _tokens.last = OperatorToken(op);
+      } else if (_tokens.last is IncompleteValueToken) {
+        _tokens.last = ValueToken(
+            (_tokens.last as IncompleteValueToken).toCompleteValue());
+        _tokens.add(OperatorToken(op));
+      }
+    } else if (_status == ResultStatus.Answer) {
+      final ans = this.evaluate();
+      _tokens.clear();
+      _tokens.add(ValueToken(ans));
       _tokens.add(OperatorToken(op));
-    } else {
-      return;
+      _status = ResultStatus.UserQuery;
     }
 
     this.notifyListeners();
@@ -45,12 +64,16 @@ class CalculatorModel extends ChangeNotifier {
   void reset() {
     print("CalculatorModel::reset()");
     _tokens.clear();
+    _status = ResultStatus.Null;
     this.notifyListeners();
   }
 
   void popToken() {
     print("CalculatorModel::pop()");
-    if (_tokens.isNotEmpty) {
+
+    if (_status == ResultStatus.Answer) {
+      this.reset();
+    } else if (_tokens.isNotEmpty) {
       bool deleteToken = false;
 
       switch (_tokens.last) {
@@ -73,8 +96,9 @@ class CalculatorModel extends ChangeNotifier {
           _tokens.removeLast();
           _tokens.add(IncompleteValueToken(value));
         }
-      }
 
+        if (_tokens.isEmpty) _status = ResultStatus.Null;
+      }
       this.notifyListeners();
     }
   }
@@ -132,6 +156,13 @@ class CalculatorModel extends ChangeNotifier {
 
     return operands.first;
   }
+
+  void onAnswer() {
+    if (_tokens.isNotEmpty) {
+      _status = ResultStatus.Answer;
+      this.notifyListeners();
+    }
+  }
 }
 
 sealed class Token {
@@ -182,8 +213,7 @@ class IncompleteValueToken extends Token {
   }
 
   void popLastDigit() {
-    if (_input.isNotEmpty)
-      _input = _input.substring(0, _input.length - 1);
+    if (_input.isNotEmpty) _input = _input.substring(0, _input.length - 1);
   }
 
   int toCompleteValue() {
