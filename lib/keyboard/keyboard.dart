@@ -32,7 +32,7 @@ class Keyboard extends StatelessWidget {
         right: 16.0,
       ),
       decoration: BoxDecoration(
-        color: new Color(0xFF292D36),
+        color: const Color(0xFF292D36),
         borderRadius: BorderRadius.only(
           topLeft: Radius.circular(28.0),
           topRight: Radius.circular(28.0),
@@ -86,7 +86,7 @@ class Keyboard extends StatelessWidget {
             ),
             KeyboardButton(
               onTap: () { calcModel.onOperator(Operator.mul); } ,
-              child: buildMathSymbol(FontAwesomeIcons.multiply),
+              child: buildMathSymbol(FontAwesomeIcons.xmark),
             ),
           ]),
           Row(children: [
@@ -145,6 +145,7 @@ class Keyboard extends StatelessWidget {
           ]),
           Row(children: [
             KeyboardButton(
+              onTap: () { calcModel.popToken(); },
               child: Icon(Icons.replay, size: 30.0),
             ),
             KeyboardButton(

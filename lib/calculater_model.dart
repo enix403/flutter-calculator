@@ -24,7 +24,7 @@ class CalculatorModel extends ChangeNotifier {
 
   void onOperator(Operator op) {
     print("CalculatorModel::onOperator(${op.symbol})");
-    if (_tokens.length == 0)
+    if (_tokens.isEmpty)
       // An expression cannot start with an operator.
       return;
 
@@ -47,9 +47,94 @@ class CalculatorModel extends ChangeNotifier {
     _tokens.clear();
     this.notifyListeners();
   }
+
+  void popToken() {
+    print("CalculatorModel::pop()");
+    if (_tokens.isNotEmpty) {
+      bool deleteToken = false;
+
+      switch (_tokens.last) {
+        case IncompleteValueToken tk:
+          tk.popLastDigit();
+          deleteToken = tk.input.isEmpty;
+          break;
+
+        case OperatorToken():
+          deleteToken = true;
+          break;
+
+        default:
+          break;
+      }
+
+      if (deleteToken) {
+        _tokens.removeLast();
+        if (_tokens.lastOrNull case ValueToken(value: var value)) {
+          _tokens.removeLast();
+          _tokens.add(IncompleteValueToken(value));
+        }
+      }
+
+      this.notifyListeners();
+    }
+  }
+
+  int evaluate() {
+    if (_tokens.isEmpty) return 0;
+
+    final List<int> operands = [];
+    final List<Operator> ops = [];
+
+    int numTokens = _tokens.length;
+
+    mainloop:
+    for (int i = 0; i < numTokens; ++i) {
+      //final token = _tokens[i];
+      switch (_tokens[i]) {
+        case ValueToken(value: var value):
+          operands.add(value);
+          break;
+
+        case IncompleteValueToken tk:
+          operands.add(tk.toCompleteValue());
+          break;
+
+        case OperatorToken(op: var op):
+          {
+            if (i == numTokens - 1) {
+              // This operator is at the end. Should be ignored
+              break mainloop;
+            }
+
+            while (ops.isNotEmpty) {
+              if (ops.last.precedence < op.precedence) break;
+
+              final expOp2 = operands.removeLast();
+              final expOp1 = operands.removeLast();
+              final expOp = ops.removeLast();
+
+              operands.add(expOp.evaluater.call(expOp1, expOp2));
+            }
+
+            ops.add(op);
+            break;
+          }
+      }
+    }
+
+    while (ops.isNotEmpty) {
+      final expOp2 = operands.removeLast();
+      final expOp1 = operands.removeLast();
+      final expOp = ops.removeLast();
+
+      operands.add(expOp.evaluater.call(expOp1, expOp2));
+    }
+
+    return operands.first;
+  }
 }
 
-abstract class Token {
+sealed class Token {
   Key makeKey() => ObjectKey(this);
 }
 
@@ -59,16 +144,25 @@ class ValueToken extends Token {
   ValueToken(this.value);
 }
 
+typedef OperatorFunc = int Function(int a, int b);
+
 class Operator {
   final String symbol;
   final int precedence;
+  final OperatorFunc evaluater;
 
-  Operator._(this.symbol, this.precedence);
+  const Operator._(this.symbol, this.precedence, this.evaluater);
 
-  static Operator get add => Operator._("+", 1);
-  static Operator get sub => Operator._("-", 1);
-  static Operator get mul => Operator._("x", 1);
-  static Operator get div => Operator._("/", 1);
+  static Operator get add => Operator._("+", 1, (a, b) => a + b);
+  static Operator get sub => Operator._("-", 1, (a, b) => a - b);
+  static Operator get mul => Operator._("*", 2, (a, b) => a * b);
+  static Operator get div => Operator._("/", 2, (a, b) => (a / b).toInt());
+
+  bool operator ==(Object other) {
+    return other is Operator &&
+        other.symbol == symbol &&
+        other.precedence == precedence;
+  }
 }
 
 class OperatorToken extends Token {
@@ -79,15 +173,21 @@ class OperatorToken extends Token {
 
 class IncompleteValueToken extends Token {
   String _input;
+  String get input => _input;
 
-  IncompleteValueToken([int? digit]) : this._input = digit?.toString() ?? "";
+  IncompleteValueToken([int? digit]) : _input = digit?.toString() ?? "";
 
   void append(int digit) {
     _input += digit.toString();
   }
 
+  void popLastDigit() {
+    if (_input.isNotEmpty)
+      _input = _input.substring(0, _input.length - 1);
+  }
+
   int toCompleteValue() {
-    return 0;
+    return int.parse(_input);
   }
 
   @override
