@@ -1,6 +1,6 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <application
-        android:label="second_flutter_app"
+        android:label="Calculate Tor"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity
